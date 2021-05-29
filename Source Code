@@ -1,0 +1,430 @@
+-------------------------------------------------------------------------------
+Minotaur Maze
+A simple game involving you running away from a minotaur. The objective is to find a way out or get the sword and kill the minotaur, without being killed yourself. 
+-------------------------------------------------------------------------------
+JOP.class
+
+import java.awt.Component;
+import javax.swing.JOptionPane;
+
+public class JOP {
+  public static void msg(String msg) {
+    JOptionPane.showMessageDialog((Component)null, msg); //Displays parameter msg in a dialogue box
+  }
+  
+  public static String in(String msg) {
+    return JOptionPane.showInputDialog(msg); //Displays parameter msg while also taking in input
+  }
+}
+-------------------------------------------------------------------------------
+Main.class
+
+public class Main {
+  public static void main(String[] args) {
+    new World(); //Creates an instanc of the World class
+  }
+}
+-------------------------------------------------------------------------------
+Maze.class
+
+public class Maze {
+  private boolean[][] _curMaze; //Stores the maze currently in use
+  
+  private int mazeNum; //Stores the number value of the desired maze (1, 2 or 3)
+  
+  private boolean[][] _maze1 = new boolean[][] { { false, false, true, true, true, true, true, false, false, false }, { false, false, true, false, false, false, true, true, false, false }, { false, false, true, true, true, false, false, true, false, false }, { true, false, true, false, true, true, true, true, false, false }, { true, false, true, false, false, false, true, true, true, true }, { true, true, true, true, true, true, true, true, false, true }, { false, true, false, false, false, false, false, true, true, true }, { false, true, false, false, false, false, false, false, false, false }, { false, true, true, true, true, true, false, false, false, false }, new boolean[10] };
+  
+  private boolean[][] _maze2 = new boolean[][] { { false, false, true, false, false, false, false, false, false, false }, { false, false, true, false, true, true, true, true, true, false }, { false, false, true, true, true, false, true, false, true, false }, { false, false, true, false, true, true, true, false, true, false }, { true, false, true, false, false, true, false, true, true, true }, { true, true, true, true, true, true, true, true, false, true }, { false, false, true, false, false, true, false, true, true, true }, { false, false, false, false, false, true, true, false, false, false }, { false, false, true, true, true, false, false, false, false, false }, new boolean[10] };
+  
+  private boolean[][] _maze3 = new boolean[][] { { false, false, false, false, false, false, false, false, false, false }, { false, false, false, false, true, true, true, true, false, false }, { true, true, true, true, true, false, true, false, false, false }, { false, false, true, false, true, true, true, false, false, false }, { false, false, true, false, false, false, true, true, true, true }, { true, true, true, true, true, true, true, true, false, true }, { false, false, true, false, false, false, false, true, true, true }, { false, false, true, false, false, false, false, false, false, true }, { false, false, true, false, false, false, false, false, false, false }, new boolean[10] };
+  
+  //Above are the three mazes, false signifies a wall, true is the opposite
+  
+  private int[][] _plyStartLocations = new int[][] { { 0, 2 }, { 0, 2 }, { 2, 0 } }; //Stores the player start locations for all 3 mazes 
+  
+  private int[][] _minStartLocations = new int[][] { { 3, 5 }, { 5, 2 }, { 3, 5 } }; //Stores the minotaur start locations
+  
+  private int[][] _swordLocations = new int[][] { { 6, 9 }, { 1, 7 }, { 1, 7 } }; //Stores the sword start locations
+  
+  private int[][] _exit = new int[][] { { 3, 0 }, { 4, 0 }, { 7, 9 } }; //Stores the exist location
+  
+  public Maze(int mazeNum) {
+    this.mazeNum = mazeNum; //Assigns mazeNum a value 
+    if (mazeNum == 1) {
+      this._curMaze = this._maze1;
+    } else if (mazeNum == 2) {
+      this._curMaze = this._maze2;
+    } else {
+      this._curMaze = this._maze3;
+    } 
+  }
+  
+  public boolean[][] getMaze() {
+    return this._curMaze; //Returns curMaze
+  }
+  
+  public int[] getPlyStart() {
+    return this._plyStartLocations[this.mazeNum - 1]; 
+  }
+  
+  public int[] getMinStart() {
+    return this._minStartLocations[this.mazeNum - 1]; 
+  }
+  
+  public int[] getSwordLocation() {
+    return this._swordLocations[this.mazeNum - 1]; 
+  }
+  
+  public int[] getExit() {
+    return this._exit[this.mazeNum - 1]; 
+  }
+  
+  //Returns the location of the player start, minotaur start, sword location or exit location
+}
+-------------------------------------------------------------------------------
+Minotaur.class
+
+public class Minotaur {
+  private int _row;
+  
+  private int _col;
+  
+  //Current position is stored in the above 2 variables
+  
+  private boolean _isAlive;
+  
+  public int getRow() {
+    return this._row;
+  }
+  
+  public int getCol() {
+    return this._col;
+  }
+  
+  //Gets the current row or column
+  
+  public void setPos(int r, int c) {
+    this._row = r;
+    this._col = c;
+  }
+  
+  //Sets the position
+  
+  public Minotaur(int r, int c) {
+    this._row = r;
+    this._col = c;
+    this._isAlive = true;
+  }
+  
+  //Initializes the state of the minotaur
+  
+  public boolean isAlive() {
+    return this._isAlive; //Gets the minotaurs' status
+  }
+  
+  public void kill() {
+    this._isAlive = false; //Kills the minotaur
+  }
+}
+-------------------------------------------------------------------------------
+Player.class
+
+public class Player {
+  private int _row;
+  
+  private int _col;
+  
+  private boolean _isAlive;
+  
+  private boolean _sword = false;
+  
+  private int _steps = 0;
+  
+  //Initializes the state of the player
+  
+  public int getRow() {
+    return this._row;
+  }
+  
+  public int getCol() {
+    return this._col;
+  }
+  
+  //Returns the row or column of the player
+  
+  public void setPos(int r, int c) {
+    this._row = r;
+    this._col = c;
+  }
+  
+  //Sets the position of the player
+  
+  public Player(int r, int c) {
+    this._row = r;
+    this._col = c;
+    this._isAlive = true;
+  }
+  
+    //Initializes the state of the player
+    
+  public boolean isAlive() {
+    return this._isAlive; //Returns the player's status
+  }
+  
+  public void kill() {
+    this._isAlive = false; //Kills the player
+  }
+  
+  public boolean hasSword() {
+    return this._sword; //Returns if the player has a sword or not
+  }
+  
+  public void giveSword() {
+    this._sword = true; //Gives the player a sword
+  }
+  
+  
+  public void addStep() {
+    this._steps++;
+  }
+  
+  public int getSteps() {
+    return this._steps;
+  }
+}
+-------------------------------------------------------------------------------
+StringMap.class
+public class StringMap {
+  private Maze _maze;
+  
+  private Player _plyr;
+  
+  private Minotaur _mint;
+  
+  private Sword _swrd;
+  
+  public StringMap(Maze m, Player p, Minotaur t, Sword s) {
+    this._maze = m;
+    this._plyr = p;
+    this._mint = t;
+    this._swrd = s;
+  }
+  
+  public String generateMap() {
+    String map = ""; //Stores the string that is outputted in the text box
+    for (int r = 0; r < (this._maze.getMaze()).length; r++) {
+      for (int c = 0; c < (this._maze.getMaze()[0]).length; c++) {
+        if (this._plyr.getRow() == r && this._plyr.getCol() == c) {
+          map = map + "P      ";
+        } else if (this._mint.getRow() == r && this._mint.getCol() == c) {
+          map = map + "M      ";
+        } else if (this._swrd.getRow() == r && this._swrd.getCol() == c && !this._swrd.getIsPickedUp()) {
+          map = map + "S      ";
+        } else if (this._maze.getExit()[0] == r && this._maze.getExit()[1] == c) {
+          map = map + "    ";
+        } else if (this._maze.getMaze()[r][c]) {
+          map = map + "     ";
+        } else {
+          map = map + "    ";
+        } 
+      } 
+      map = map + "\n";
+    } 
+    map = map + "\n";
+    return map;
+    //Populates the map with the player, minotaur, sword and exit, then fills in walls and pathways.
+  }
+}
+-------------------------------------------------------------------------------
+Sword.class
+
+public class Sword {
+  public boolean isPickedUp;
+  
+  private int _row;
+  
+  private int _col;
+  
+  //Stores the state of the sword
+  
+  public int getRow() {
+    return this._row;
+  }
+  
+  public int getCol() {
+    return this._col;
+  }
+  
+  //Returns the row/column
+  
+  public Sword(int r, int c) {
+    this._row = r;
+    this._col = c;
+  }
+  
+  //Initializes the Sword's state
+  
+  public void setPos(int r, int c) {
+    this._row = r;
+    this._col = c;
+  }
+  
+  //Sets the sword's position
+  
+  public void setPickedUp(boolean pickedUp) {
+    this.isPickedUp = pickedUp;
+  }
+  
+  //Sets the state
+  
+  public boolean getIsPickedUp() {
+    return this.isPickedUp;
+  }
+  
+  //Returns the state
+}
+-------------------------------------------------------------------------------
+World.class
+
+public class World {
+  private Player _p;
+  
+  private Minotaur _t;
+  
+  public int mazeNum;
+  
+  private Maze _m;
+  
+  private StringMap _s;
+  
+  private Sword _sw;
+  
+ //Stores the player, minotaur, maze, stringmap and sword classes, and the maze number
+  
+  public World() {
+    JOP.msg("How to play \nMovement: w for up, s for down, a for right, and d for left. Type quit to quit.\nIn order to win you must either escape, or get the sword and kill the minotaur.\nTo kill the minotaur you must move onto the space it occupies. If the minotaur moves onto your space you lose.\nDepending on the map layout, either one may be most effective.");
+    inputMazeNum();
+    this._m = new Maze(this.mazeNum);
+    this._p = new Player(this._m.getPlyStart()[0], this._m.getPlyStart()[1]);
+    this._t = new Minotaur(this._m.getMinStart()[0], this._m.getMinStart()[1]);
+    this._sw = new Sword(this._m.getSwordLocation()[0], this._m.getSwordLocation()[1]);
+    this._s = new StringMap(this._m, this._p, this._t, this._sw);
+    update();
+  }
+  
+  //Displays the tutorial, gets the maze number and initializes the maze, player, minotaur, sword and string map
+  
+  public void inputMazeNum() {
+    try {
+      this.mazeNum = Integer.parseInt(JOP.in("Choose a map, 1-3"));
+      if (this.mazeNum > 3 || this.mazeNum < 1) {
+        JOP.msg("Please enter a valid number.");
+        inputMazeNum();
+      } 
+    } catch (Exception e) {
+      JOP.msg("Please enter a valid number.");
+      inputMazeNum();
+    } 
+  }
+  
+  //Gets the maze number from player input
+  
+  public void update() {
+    boolean isPlaying = true;
+    while (isPlaying) {
+      boolean on = true;
+      String map = this._s.generateMap();
+      String msg = "What direction do you want to move?";
+      while (on) {
+        String move = JOP.in(map + msg);
+        if (move != null && getPlayerMove(move))
+          on = false; 
+      } 
+      this._p.addStep();
+      if (this._p.getRow() == this._sw.getRow() && this._sw.getCol() == this._p.getCol()) {
+        this._sw.setPickedUp(true);
+        this._p.giveSword();
+      } 
+      moveMinotaur();
+      if (death()) {
+        isPlaying = false;
+        JOP.msg("This game is very easy how did you lose? Your step count is: " + this._p.getSteps());
+      } 
+      if (victory()) {
+        isPlaying = false;
+        JOP.msg("Yay you won!! Your step count is: " + this._p.getSteps());
+      } 
+    } 
+  }
+  
+  //While the player is alive and has not exited, moves player according to input, moves minotaur according to the respective method output, and check for death or victory
+  
+  private boolean getPlayerMove(String s) {
+    if (s.equalsIgnoreCase("W")) {
+      if (this._p.getRow() - 1 >= 0 && this._m.getMaze()[this._p.getRow() - 1][this._p.getCol()]) {
+        this._p.setPos(this._p.getRow() - 1, this._p.getCol());
+        return true;
+      } 
+      return false;
+    } 
+    if (s.equalsIgnoreCase("S")) {
+      if (this._p.getRow() + 1 < (this._m.getMaze()).length && this._m.getMaze()[this._p.getRow() + 1][this._p.getCol()]) {
+        this._p.setPos(this._p.getRow() + 1, this._p.getCol());
+        return true;
+      } 
+      return false;
+    } 
+    if (s.equalsIgnoreCase("D")) {
+      if (this._p.getCol() + 1 < (this._m.getMaze()[0]).length && this._m.getMaze()[this._p.getRow()][this._p.getCol() + 1]) {
+        this._p.setPos(this._p.getRow(), this._p.getCol() + 1);
+        return true;
+      } 
+      return false;
+    } 
+    if (s.equalsIgnoreCase("A")) {
+      if (this._p.getCol() - 1 >= 0 && this._m.getMaze()[this._p.getRow()][this._p.getCol() - 1]) {
+        this._p.setPos(this._p.getRow(), this._p.getCol() - 1);
+        return true;
+      } 
+      return false;
+    } 
+    if (s.equalsIgnoreCase("Quit")) {
+      System.exit(0);
+      return false;
+    } 
+    return false;
+  }
+  
+  //Moves player based on input, w is up, a is left, s is down, d is right and quit exits the program.
+  
+  private void moveMinotaur() {
+    int rDist = this._p.getRow() - this._t.getRow();
+    int cDist = this._p.getCol() - this._t.getCol();
+    int r = this._t.getRow();
+    int c = this._t.getCol();
+    if (rDist < 0 && this._m.getMaze()[r - 1][c])
+      this._t.setPos(r - 1, c); 
+    if (rDist > 0 && this._m.getMaze()[r + 1][c])
+      this._t.setPos(r + 1, c); 
+    if (cDist > 0 && this._m.getMaze()[r][c + 1])
+      this._t.setPos(r, c + 1); 
+    if (cDist < 0 && this._m.getMaze()[r][c - 1])
+      this._t.setPos(r, c - 1); 
+  }
+  
+  //A simple algorithmn that chooses which direction to move the minotaur to move in based on distance from player and open spaces
+  
+  public boolean death() {
+    return (this._t.getRow() == this._p.getRow() && this._t.getCol() == this._p.getCol() && !this._p.hasSword());
+  }
+  
+  //Returns true if player touches the minotaur and doesn't have the sword 
+  
+  public boolean victory() {
+    if (this._t.getRow() == this._p.getRow() && this._t.getCol() == this._p.getCol() && this._p.hasSword())
+      return true; 
+    return (this._p.getRow() == this._m.getExit()[0] && this._p.getCol() == this._m.getExit()[1]);
+  }
+  
+  //Returns true if the player touches the minotaur while holding the sword or gets to the exit
+}
